@@ -1,27 +1,38 @@
 import streamlit as st
-from google import genai
+from openai import OpenAI
 from PIL import Image
-import json
-import io
 
-# 1. API Setup
-API_KEY = "AIzaSyDof0t8chLmQm2DLBH968PmGe3Gk5GGUI8"
-client = genai.Client(api_key=API_KEY)
+# =========================
+# 1. API SETUP (OpenRouter)
+# =========================
+API_KEY = "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"
 
-# 2. Page Configuration
+client = OpenAI(
+    api_key=API_KEY,
+    base_url="https://openrouter.ai/api/v1"
+)
+
+# =========================
+# 2. PAGE CONFIG
+# =========================
 st.set_page_config(page_title="YOUR AI CODING TUTOR", layout="wide", page_icon="🤖")
 
-# 3. Session State for Multi-Chat Management
+# =========================
+# 3. SESSION STATE
+# =========================
 if "all_chats" not in st.session_state:
     st.session_state.all_chats = {"Chat 1": []}
+
 if "current_chat" not in st.session_state:
     st.session_state.current_chat = "Chat 1"
 
-# --- SIDEBAR: History, Delete, and Sharing ---
+# =========================
+# SIDEBAR
+# =========================
 with st.sidebar:
     st.title("♊ History")
-    
-    # New Chat Button
+
+    # New Chat
     if st.button("➕ New Chat", use_container_width=True):
         new_id = f"Chat {len(st.session_state.all_chats) + 1}"
         st.session_state.all_chats[new_id] = []
@@ -29,14 +40,16 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("---")
-    
-    # List all chat sessions with a Delete option
+
+    # Chat List + Delete
     for chat_id in list(st.session_state.all_chats.keys()):
         col1, col2 = st.columns([0.8, 0.2])
+
         with col1:
             if st.button(chat_id, key=f"select_{chat_id}", use_container_width=True):
                 st.session_state.current_chat = chat_id
                 st.rerun()
+
         with col2:
             if st.button("🗑️", key=f"del_{chat_id}"):
                 if len(st.session_state.all_chats) > 1:
@@ -47,19 +60,18 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
+
     uploaded_file = st.file_uploader("🖼️ Analyze Image", type=["png", "jpg", "jpeg"])
-    
-    # --- SHARE OPTION ---
+
+    # Share Chat
     st.markdown("### 📤 Share This Chat")
     current_history = st.session_state.all_chats[st.session_state.current_chat]
-    
+
     if current_history:
-        # Create a formatted text version for sharing
         share_text = f"--- {st.session_state.current_chat} History ---\n\n"
         for m in current_history:
             share_text += f"{m['role'].upper()}: {m['content']}\n\n"
-        
-        # Download button acts as a 'Share' trigger
+
         st.download_button(
             label="Download to Share",
             data=share_text,
@@ -70,41 +82,71 @@ with st.sidebar:
     else:
         st.info("Start a chat to enable sharing.")
 
-# --- MAIN INTERFACE ---
+# =========================
+# MAIN UI
+# =========================
 st.title("🚀 YOUR AI CODING TUTOR")
+
 language = st.selectbox("I am teaching you:", ["Python", "Java", "C", "C++", "DSA"])
 
-# Display History for the active chat
+# Display chat history
 for msg in st.session_state.all_chats[st.session_state.current_chat]:
     avatar = "🤖" if msg["role"] == "model" else "👤"
-    with st.chat_message(msg["role"], avatar=avatar):
+    role = "assistant" if msg["role"] == "model" else "user"
+
+    with st.chat_message(role, avatar=avatar):
         st.markdown(msg["content"])
 
-# Chat Interaction
+# =========================
+# CHAT INPUT
+# =========================
 if prompt := st.chat_input("Ask me anything about coding..."):
-    st.session_state.all_chats[st.session_state.current_chat].append({"role": "user", "content": prompt})
+
+    # Save user message
+    st.session_state.all_chats[st.session_state.current_chat].append(
+        {"role": "user", "content": prompt}
+    )
+
     with st.chat_message("user", avatar="👤"):
         st.markdown(prompt)
 
+    # Generate response
     with st.chat_message("assistant", avatar="🤖"):
-        with st.spinner("Gemini 2.0 Flash is thinking..."):
+        with st.spinner("AI is thinking..."):
             try:
-                # Context gathering
-                parts = [{"text": f"System: You are a {language} tutor. "}]
-                for m in st.session_state.all_chats[st.session_state.current_chat]:
-                    parts.append({"text": f"{m['role']}: {m['content']}"})
-                
-                if uploaded_file:
-                    parts.append(Image.open(uploaded_file))
+                messages = []
 
-                response = client.models.generate_content(
-                    model="models/gemini-1.5-flash",
-                    contents=parts
+                # System prompt
+                messages.append({
+                    "role": "system",
+                    "content": f"You are a helpful {language} coding tutor."
+                })
+
+                # Chat history
+                for m in st.session_state.all_chats[st.session_state.current_chat]:
+                    role = "assistant" if m["role"] == "model" else "user"
+                    messages.append({
+                        "role": role,
+                        "content": m["content"]
+                    })
+
+                # API call
+                response = client.chat.completions.create(
+                    model="openai/gpt-4o-mini",  # fast & cheap
+                    messages=messages
                 )
-                
-                answer = response.text
+
+                answer = response.choices[0].message.content
+
                 st.markdown(answer)
-                st.session_state.all_chats[st.session_state.current_chat].append({"role": "model", "content": answer})
-                
+
+                # Save response
+                st.session_state.all_chats[st.session_state.current_chat].append(
+                    {"role": "model", "content": answer}
+                )
+
             except Exception as e:
                 st.error(f"Error: {e}")
+    
+    
+
