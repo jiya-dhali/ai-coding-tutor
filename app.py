@@ -98,7 +98,7 @@ if prompt := st.chat_input("Ask me anything about coding..."):
                     parts.append(Image.open(uploaded_file))
 
                 response = client.models.generate_content(
-                    model="gemini-1.5-flash",
+                    model="gemini-pro",
                     contents=parts
                 )
                 
