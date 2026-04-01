@@ -5,7 +5,7 @@ import json
 import io
 
 # 1. API Setup
-API_KEY = "AIzaSyDI-3gdyOX85DVqRRrV_auy1Yu9ix6Nns4"
+API_KEY = "AIzaSyDof0t8chLmQm2DLBH968PmGe3Gk5GGUI8"
 client = genai.Client(api_key=API_KEY)
 
 # 2. Page Configuration
@@ -98,7 +98,7 @@ if prompt := st.chat_input("Ask me anything about coding..."):
                     parts.append(Image.open(uploaded_file))
 
                 response = client.models.generate_content(
-                    model="gemini-2.0-flash",
+                    model="gemini-1.5-flash",
                     contents=parts
                 )
                 
