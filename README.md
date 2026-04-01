@@ -1,5 +1,5 @@
 # 🚀 YOUR AI CODING TUTOR
-A powerful, multimodal AI assistant designed to help students master Python, DSA, and Web Development. Powered by **Google Gemini 2.0 Flash**.
+A powerful, multimodal AI assistant designed to help students master Python, DSA, and Web Development. Powered by **Open Router API**.
 
 ### ✨ Key Features
 * **Multimodal Vision:** Upload screenshots of bugs or logic errors for instant AI analysis.
@@ -9,9 +9,10 @@ A powerful, multimodal AI assistant designed to help students master Python, DSA
 
 ### 🛠️ Tech Stack
 * **Frontend:** Streamlit
-* **AI Model:** Gemini 2.0 Flash (Google Gen AI SDK)
+* **AI Model:** Open Router API
 * **Language:** Python 3.x
 * **Deployment:** Streamlit Cloud
 
 ### 🚀 Live Demo
-[Click here to try my AI Coding Tutor!](https://ai-coding-tutor-qjvwqbnjrpyehsdtasrgrj.streamlit.app/)
+[Click here to try my AI Coding Tutor!](https://jiya-ai-tutor.streamlit.app/
+)
